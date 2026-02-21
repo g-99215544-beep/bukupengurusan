@@ -112,6 +112,7 @@
         .day-cell.other-month { background: #fafafa; }
         .day-num { font-size: 12px; color: #1e293b; }
         .day-cell.other-month .day-num { color: #cbd5e1; }
+        .day-cell.today .day-num { background: #6366f1; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
         .day-dots { display: flex; gap: 2px; margin-top: 2px; }
         .day-dot { width: 5px; height: 5px; border-radius: 50%; }
         
@@ -272,7 +273,16 @@
                     { label: "JK JPMS/Data", page_number: 30, category: "pentadbiran" }
                 ]
             },
-            { 
+            {
+                nama: "EN. MUHAMAD IKHWAN FARHAN BIN MOHD SHUKRI",
+                jawatan: "Pembantu Tadbir Sekolah",
+                avatar: "🗂️",
+                tugas: [
+                    { label: "Penyelaras JPKAS", page_number: 30, category: "pentadbiran" },
+                    { label: "Penyelaras HRMIS", page_number: 30, category: "pentadbiran" }
+                ]
+            },
+            {
                 nama: "EN. AFFIQ NAQIUDDIN BIN ALIAS", 
                 jawatan: "Guru B. Melayu", 
                 avatar: "👨‍🏫", 
@@ -1073,7 +1083,7 @@
             "2026-10-30": [{ event: "Gotong-Royong 2", type: "aktiviti", color: "#8b5cf6" }],
             
             // NOVEMBER 2026
-            "2026-11-05": [{ event: "Mesyuarat HEM 4", type: "hem", color: "#f97316" }],
+            "2026-11-05": [{ event: "Mesyuarat HEM 5", type: "hem", color: "#f97316" }],
             "2026-11-08": [{ event: "Cuti Deepavali", type: "cuti", color: "#ef4444" }],
             "2026-11-10": [{ event: "Cuti Tambahan KPM", type: "cuti", color: "#ef4444" }],
             "2026-11-11": [{ event: "Mesyuarat Pengurusan & Mesyuarat Guru Bil.4", type: "sekolah", color: "#10b981" }, { event: "Mesyuarat Budaya Tutup Sekolah", type: "sekolah", color: "#10b981" }, { event: "Mesyuarat Kurikulum Bil.4", type: "kurikulum", color: "#14b8a6" }],
@@ -1164,13 +1174,13 @@
             "JK SKPMg2": "MUHAMMAD SUFIAN BIN MUSTAFA BAKRI",
             "JPKAS": "MUHAMAD IKHWAN FARHAN BIN MOHD SHUKRI",
             "JK JPKAS": "MUHAMAD IKHWAN FARHAN BIN MOHD SHUKRI",
+            "HRMIS": "MUHAMAD IKHWAN FARHAN BIN MOHD SHUKRI",
+            "JK HRMIS": "MUHAMAD IKHWAN FARHAN BIN MOHD SHUKRI",
             "Keceriaan Fizikal": "SHARIMAH BINTI MD ZIN",
             "ICT Sekolah": "MUHAMMAD SUFIAN BIN MUSTAFA BAKRI",
             "JK ICT": "MUHAMMAD SUFIAN BIN MUSTAFA BAKRI",
             "PDCA/ICU": "NORLIZAM BIN IDROSE",
             "JK PDCA/ICU": "NORLIZAM BIN IDROSE",
-            "HRMIS": "MUHAMAD IKHWAN FARHAN BIN MOHD SHUKRI",
-            "JK HRMIS": "MUHAMAD IKHWAN FARHAN BIN MOHD SHUKRI",
             "TS25": "THANALETCHIMI A/P R. RAMA",
             "JK TS25": "THANALETCHIMI A/P R. RAMA",
             "MBMMBI": "NORLIZAM BIN IDROSE",
@@ -1269,6 +1279,11 @@
             "Catur": "NUR IZZATI BINTI MOHD KHALIL"
         };
         
+        function parseDateStr(ds) {
+            const [y, m, d] = ds.split('-').map(Number);
+            return new Date(y, m - 1, d);
+        }
+
         function normalizeNameForComparison(name) {
             return name
                 .replace(/^(PN\.|EN\.|CIK|DR\.)\s*/i, '')
@@ -1313,7 +1328,8 @@
         }
         
         let pdfDoc = null, currentZoom = 100, totalPages = 71, currentPage = 1, currentTab = 'buku';
-        let calendarMonth = 0, calendarYear = 2026, selectedDate = null;
+        const _now = new Date();
+        let calendarMonth = _now.getMonth(), calendarYear = _now.getFullYear(), selectedDate = null;
         let selectedGuruIndex = -1, activeFilter = 'semua';
         let renderedPages = new Set(), renderingPages = new Set(), highlightName = '';
         let searchResults = [];
@@ -1351,7 +1367,7 @@
             Object.entries(takwimData).forEach(([ds, evts]) => {
                 evts.forEach(e => {
                     if (e.event.toUpperCase().includes(q)) {
-                        const d = new Date(ds);
+                        const d = parseDateStr(ds);
                         searchResults.push({ type: 'takwim', label: e.event, sub: d.getDate() + ' ' + MONTHS_MS[d.getMonth()], ds: ds, color: e.color });
                     }
                 });
@@ -1383,7 +1399,7 @@
                 switchTab('buku');
                 setTimeout(() => scrollToPage(tableOfContents[r.si].page_start), 100);
             } else if (r.type === 'takwim') {
-                const d = new Date(r.ds);
+                const d = parseDateStr(r.ds);
                 calendarMonth = d.getMonth();
                 calendarYear = d.getFullYear();
                 selectedDate = r.ds;
@@ -1696,11 +1712,14 @@
             if (selectedDate) showEvents(selectedDate);
         }
         
+        const _todayStr = _now.getFullYear() + '-' + String(_now.getMonth() + 1).padStart(2, '0') + '-' + String(_now.getDate()).padStart(2, '0');
+
         function dayCell(d, ds, other) {
             const evts = takwimData[ds] || [];
             const sel = selectedDate === ds;
+            const isToday = ds === _todayStr;
             const dots = evts.slice(0, 3).map(e => '<div class="day-dot" style="background:' + e.color + '"></div>').join('');
-            return '<div class="day-cell' + (other ? ' other-month' : '') + (sel ? ' selected' : '') + '" onclick="selectDate(\'' + ds + '\')"><span class="day-num">' + d + '</span>' + (dots ? '<div class="day-dots">' + dots + '</div>' : '') + '</div>';
+            return '<div class="day-cell' + (other ? ' other-month' : '') + (sel ? ' selected' : '') + (isToday ? ' today' : '') + '" onclick="selectDate(\'' + ds + '\')"><span class="day-num">' + d + '</span>' + (dots ? '<div class="day-dots">' + dots + '</div>' : '') + '</div>';
         }
         
         function selectDate(ds) { selectedDate = ds; renderCalendar(); showEvents(ds); }
@@ -1709,7 +1728,7 @@
             const evts = takwimData[ds] || [];
             const p = document.getElementById('eventsPanel');
             if (!evts.length) { p.style.display = 'none'; return; }
-            const d = new Date(ds);
+            const d = parseDateStr(ds);
             p.innerHTML = '<div class="events-date">' + DAYS_MS[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS_MS[d.getMonth()] + ' ' + d.getFullYear() + '<button class="events-close" onclick="closeEvents()">✕</button></div>' + evts.map(e => '<div class="event-item"><div class="event-dot" style="background:' + e.color + '"></div><span class="event-text">' + e.event + '</span></div>').join('');
             p.style.display = 'block';
         }
