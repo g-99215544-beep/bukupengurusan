@@ -1686,7 +1686,7 @@
                 const ic = categoryConfig[t.category]?.icon || '📋';
                 const lbl = getTaskLabel(g, t);
                 const oi = g.tugas.indexOf(t);
-                const isLeader = /penyelaras|ketua|penolong kanan/i.test(lbl);
+                const isLeader = /penyelaras|ketua|penolong kanan|setiausaha/i.test(lbl);
                 const hlClass = isLeader ? ' task-highlight' : '';
                 return '<div class="task-item' + hlClass + '" onclick="clickTask(' + oi + ')"><div class="task-num">' + (i+1) + '</div><div class="task-icon" style="background:' + col + '">' + ic + '</div><div class="task-text"><div class="task-label">' + lbl + '</div><div class="task-page">Muka surat ' + t.page_number + '</div></div><span class="task-arrow">→</span></div>';
             }).join('');
